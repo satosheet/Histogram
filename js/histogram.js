@@ -75,8 +75,10 @@ Ext.define('Ext.ux.Histogram', {
 		}
 		
 		var o = Ext.Stat.minunit(range / this.binsize);
-		var this.binwidth = o.value;
+		this.binwidth = o.value;
 		var minunit = o.minunit;
+		
+		console.log(o);
 		
 		if(range == 0) {
 			this.binsize = 5;
@@ -127,7 +129,7 @@ Ext.define('Ext.ux.Histogram', {
 			if(dv === this.binfirst) {
 				idx = 0;
 			} else {
-				idx = Math.floor(Math.floor((dv - this.binfirst) / this.binwidth))); 
+				idx = Math.floor(Math.floor((dv - this.binfirst) / this.binwidth)); 
 			}
 			
 			this.freqData[idx]++;
@@ -177,25 +179,74 @@ Ext.define('Ext.ux.Histogram', {
 		var width = this.getWidth();
 		var height = this.getHeight();
 		
-		this.gbEl = this.el.createChild({
-			tag : 'img',
-			src : 'https://lh4.ggpht.com/7ZmqGpfppjHqn1cdszOaAcWxdpDWWZf6N-MooB-tSkLiH5hiqQ7YY6oKj47AwJ0Wuqp1=s113',
-			cls : 'ext-ux-clock-img',
-			width : width,
-			height : height
-		});
+		// this.gbEl = this.el.createChild({
+		// 	tag : 'img',
+		// 	src : 'http://miracom.co.kr/images/main_logo.jpg',
+		// 	cls : 'ext-ux-clock-img',
+		// 	width : width,
+		// 	height : height
+		// });
 		
 		this.canvas = Raphael(this.el.dom, width, height);
 		
-		this.drawHands();
+		this.generate();
+		this.calculate();
+		this.chart();
+
+		// this.drawHands();
 		
 		// this.on('resize', this.refresh, this);
 		
 		this.callParent(arguments);
 	},
 	
-	drawHistogram : function() {
-		// const data = 
+	generate : function() {
+		const NTEST = 100;
+		const RANDMAX = 100000;
+		
+		this.data = [];
+		
+		for(var i = 0;i < NTEST;i++)
+			this.data[i] = Math.floor(Math.random() * RANDMAX);
+		console.log(this.data);
+	},
+	
+	d : function() {
+		var xp1, xp2;
+		
+		for(var i = 0;i < this.binMesh.length - 2;i++) {
+			xp1 = this.binMesh[i];
+			xp2 = this.binMesh[i + 1];
+			yp = this.freqData[i];
+			
+			xpixel1 = 1;
+			
+		}
+	},
+	
+	chart : function() {
+		var canvas = this.canvas;
+		var rects = [];
+		
+		var width = this.getWidth();
+		var height = this.getHeight();
+
+		console.log(this.binMesh[this.binMesh.length - 1]);
+
+		for(var i = 0;i < this.binMesh.length - 1;i++){
+			var o = {
+				x : (this.binMesh[i] - this.binMesh[0]) / 100,
+				y : height - this.freqData[i],
+				w : (this.binMesh[1] - this.binMesh[0]) /100,
+				h : this.freqData[i]
+			};
+
+			rects[i] = canvas.rect(o.x, o.y, o.w, o.h);
+			rects[i].attr({
+				fill : '#00f',
+				opacity : '0.2'
+			});
+		}		
 	},
 	
 	drawHands : function() {

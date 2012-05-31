@@ -79,7 +79,7 @@
 					}
 				}
 			}
-		}
+		},
 		
 		dnormal : function(x, mu, sigma) {
 			if(sigma <= 0)
