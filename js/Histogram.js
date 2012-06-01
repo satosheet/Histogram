@@ -78,8 +78,6 @@ Ext.define('Ext.ux.Histogram', {
 		this.binwidth = o.value;
 		var minunit = o.minunit;
 		
-		console.log(o);
-		
 		if(range == 0) {
 			this.binsize = 5;
 			this.binfirst = Math.floor(this.min) - 2;
@@ -191,7 +189,10 @@ Ext.define('Ext.ux.Histogram', {
 		
 		this.generate();
 		this.calculate();
-		this.chart();
+		
+		this.drawRegion();
+		this.drawBar();
+		this.drawTitle();
 
 		// this.drawHands();
 		
@@ -208,91 +209,112 @@ Ext.define('Ext.ux.Histogram', {
 		
 		for(var i = 0;i < NTEST;i++)
 			this.data[i] = Math.floor(Math.random() * RANDMAX);
-		console.log(this.data);
 	},
 	
-	d : function() {
-		var xp1, xp2;
+	drawRegion : function() {
+		var bw = this.getWidth();
+		var bh = this.getHeight();
 		
-		for(var i = 0;i < this.binMesh.length - 2;i++) {
-			xp1 = this.binMesh[i];
-			xp2 = this.binMesh[i + 1];
-			yp = this.freqData[i];
-			
-			xpixel1 = 1;
-			
-		}
+		const CHART_LEFT_GAP_PIXELS = 10;
+		const CHART_RIGHT_GAP_PIXELS = 10;
+		const CHART_TOP_GAP_PIXELS = 10;
+		const CHART_BOTTOM_GAP_PIXELS = 10;
+		
+		var region = this.canvas.rect(CHART_LEFT_GAP_PIXELS, CHART_TOP_GAP_PIXELS, bw - CHART_LEFT_GAP_PIXELS - CHART_RIGHT_GAP_PIXELS, bh - CHART_TOP_GAP_PIXELS - CHART_BOTTOM_GAP_PIXELS);
+		region.attr({
+			fill : '#fff',
+			// opacity : '0.2',
+			stroke : 'navy',
+			'stroke-width' : '2'
+		});
 	},
 	
-	chart : function() {
+	drawTitle : function() {
+		
+		
+/*
+		Dim ptLocation As Point = New Point(rcDraw.Left + CHART_BORDER_PIXELS, _
+            rcDraw.Top + CHART_BORDER_PIXELS)
+        Dim szSize As Size = New Size(rcDraw.Right - ptLocation.X - CHART_BORDER_PIXELS, _
+            rcDraw.Height - ptLocation.Y - CHART_BORDER_PIXELS * 2 + rcDraw.Top)
+        TitleRegion = New Rectangle(ptLocation, szSize)
+
+        Dim fmtTitle As StringFormat = New StringFormat
+        If ParentControl.MainTitle <> STRING_NULL_DATA Then
+            fmtTitle.LineAlignment = StringAlignment.Near
+            fmtTitle.Alignment = StringAlignment.Center
+            g.DrawString(ParentControl.MainTitle, _
+                ParentControl.Font, _
+                New SolidBrush(Color.FromArgb(123, 25, 25)), _
+                TitleRegion.Left + TitleRegion.Width / 2.0, _
+                TitleRegion.Top, _
+                fmtTitle)
+        End If
+
+        If ParentControl.BottomTitle <> STRING_NULL_DATA Then
+            fmtTitle.LineAlignment = StringAlignment.Center
+            fmtTitle.Alignment = StringAlignment.Center
+            g.DrawString(ParentControl.BottomTitle, _
+                ParentControl.Font, _
+                New SolidBrush(Color.FromArgb(123, 25, 25)), _
+                TitleRegion.Left + TitleRegion.Width / 2.0, _
+                TitleRegion.Bottom - 2, _
+                fmtTitle)
+        End If
+
+        If ParentControl.LeftTitle <> STRING_NULL_DATA Then
+            fmtTitle.FormatFlags = StringFormatFlags.DirectionVertical
+            fmtTitle.LineAlignment = StringAlignment.Center
+            fmtTitle.Alignment = StringAlignment.Center
+            g.DrawString(ParentControl.LeftTitle, _
+                ParentControl.Font, _
+                New SolidBrush(Color.FromArgb(123, 25, 25)), _
+                TitleRegion.Left + 5, _
+                TitleRegion.Top + TitleRegion.Height / 2.0, _
+                fmtTitle)
+        End If
+*/
+
+        
+	},
+	
+	drawBar : function() {
 		var canvas = this.canvas;
+		
+		var xmin = 0, xmax = 100000;
+		var ymin = 0, ymax = 100;
+		
+		var xl1, xl2, yl, xp1, xp2, hp, yp;
+		var bw = this.getWidth();
+		var bh = this.getHeight();
 		var rects = [];
 		
-		var width = this.getWidth();
-		var height = this.getHeight();
-
-		console.log(this.binMesh[this.binMesh.length - 1]);
-
-		for(var i = 0;i < this.binMesh.length - 1;i++){
-			var o = {
-				x : (this.binMesh[i] - this.binMesh[0]) / 100,
-				y : height - this.freqData[i],
-				w : (this.binMesh[1] - this.binMesh[0]) /100,
-				h : this.freqData[i]
-			};
-
-			rects[i] = canvas.rect(o.x, o.y, o.w, o.h);
+		for(var i = 0;i < this.binMesh.length - 2;i++) {
+			xl1 = this.binMesh[i]; // logical x
+			xl2 = this.binMesh[i + 1];
+			yl = this.freqData[i];
+			
+			xp1 = (xl1 - xmin) * bw / (xmax - xmin); // x pixels
+			xp2 = (xl2 - xmin) * bw / (xmax - xmin);
+			hp = (yl - ymin) * bh / (ymax - ymin); // height pixels
+			
+			if(hp <= 0)
+				continue;
+				
+			yp = bh - hp;
+			
+			rects[i] = canvas.rect(xp1, yp, xp2 - xp1, hp);
 			rects[i].attr({
 				fill : '#00f',
-				opacity : '0.2'
+				opacity : '0.2',
+				stroke : 'navy',
+				'stroke-width' : '2'
 			});
-		}		
+		}
 	},
 	
-	drawHands : function() {
-		const divNum = 20;
-		const rndMax = 100000;
-		const testNum = 3000;
-
-		var width = this.getWidth();
-		var height = this.getHeight();
+	draw3Sigma : function() {
 		
-		var canvas = this.canvas;
-
-		// canvas.rect(0, 0, width, height).attr({
-		//   fill: "90-#111-#ddd",
-		//   "stroke": "#ddd",
-		//   "stroke-dasharray": ""
-		// });
-
-		var data = new Array(divNum);
-		var rects = new Array(divNum);
-		for(var i=0;i<divNum;i++){ data[i] = 0; }
-
-		for(var i=0;i<testNum;i++){
-		  var r = Math.floor(Math.random()*rndMax);
-
-		  var divVal = rndMax/divNum;
-		  var divI = 0;
-		  while(divVal <= rndMax){
-		    if(r < divVal){
-		      data[divI] += 1;
-		      break;
-		    }
-		    divI++;
-		    divVal += rndMax/divNum;
-		  }
-		}
-
-		for(var i=0;i<divNum;i++){
-		  rects[i]  = canvas.rect(
-		                  width/divNum*i, height-1*data[i],
-		                  width/divNum, 1*data[i]);
-		  rects[i].attr({
-			fill : '#00f',
-			opacity : '0.2'
-		  });
-		}		
 	},
 	
 	onDestroy : function() {
