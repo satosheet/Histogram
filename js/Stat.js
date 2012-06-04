@@ -21,11 +21,10 @@
 			if(!mean) {
 				mean = this.mean(data);
 			}
-			
-			var variance = Ext.Array.reduce(function(s, v) {
-				s += Math.pow(v - mean, 2);
-			}, 0) / data.length;
-			
+			var variance = Ext.Array.sum(Ext.Array.map(data, function(v) {
+				return Math.pow(v - mean, 2);
+			})) / data.length;
+
 			return Math.sqrt(variance);
 		},
 		

@@ -4,7 +4,7 @@ Ext.define('Ext.ux.Histogram', {
 	udc : null,
 	target : null,
 	lsl : null,
-	show3SigmaLine : false,
+	show3SigmaLine : true,
 	showNormalLine : true,
 	showSpecLimit : false,
 	showGridLine : true,
@@ -21,7 +21,7 @@ Ext.define('Ext.ux.Histogram', {
 	barCount : 0,
 	stddev : null,
 	precision : 4,
-	stepY : 1,
+	stepY : 10,
 	bgColor : null, //Color.WhiteSmoke
 	barColor : null, //Color.FromArgb(81, 121, 214)
 	
@@ -148,8 +148,11 @@ Ext.define('Ext.ux.Histogram', {
 		if(this.mean === null) {
 			this.mean = sum / this.data.length;
 		}
+		
 		if(this.stddev === null) {
-			this.stddev = Math.sqrt(sqrtsum - this.data.length * Math.pow(sum / this.data.length, 2) / (this.data.length - 1));
+			this.stddev = Ext.Stat.stddev(this.data, this.mean);
+			// TODO 빠른 계산을 위해서 아래 로직을 수정해서 위를 대체한다.
+			// this.stddev = Math.sqrt(sqrtsum - this.data.length * Math.pow(sum / this.data.length, 2) / (this.data.length - 1)); // 계산 오류 있음.
 		}
 		
 		this.calculated = true;
@@ -195,7 +198,7 @@ Ext.define('Ext.ux.Histogram', {
 		this.drawXAxis(rect);
 		this.drawYAxis(rect);
 		this.drawBar(rect);
-		this.drawBarFreq(rect);
+		this.drawNormalLine(rect);
 
 		// this.drawHands();
 		
@@ -206,12 +209,18 @@ Ext.define('Ext.ux.Histogram', {
 	
 	generate : function() {
 		const NTEST = 100;
-		const RANDMAX = 100000;
+		const RANDMAX = 100;
 		
 		this.data = [];
 		
-		for(var i = 0;i < NTEST;i++)
-			this.data[i] = Math.floor(Math.random() * RANDMAX);
+		for(var i = 0;i < NTEST /2;i++)
+			this.data[i] = 1000 + Math.floor(Math.random() * RANDMAX);
+		for(;i < NTEST;i++)
+			this.data[i] = 1000 + Math.floor((RANDMAX / 4) + Math.random() * (RANDMAX / 2));
+		for(;i < NTEST * 4;i++)
+			this.data[i] = 1000 + Math.floor((RANDMAX / 3) + Math.random() * (RANDMAX / 3));
+		for(;i < NTEST * 16;i++)
+			this.data[i] = 1000 + Math.floor((RANDMAX / 2.5) + Math.random() * (RANDMAX / 4));
 	},
 	
 	drawRegion : function() {
@@ -311,7 +320,7 @@ Ext.define('Ext.ux.Histogram', {
 
 			path = 'M' + xpos + ','  + (ypos + 5) + 'L' + xpos + ',' + ypos;
 			this.canvas.path(path);
-			this.canvas.text(xpos, ypos + 10, this.binMesh[i]);
+			this.canvas.text(xpos, ypos + 10, Math.floor(this.binMesh[i]));
 		}
 
 		if(this.show3SigmaLine && this.showSpecLimit) {
@@ -333,7 +342,7 @@ Ext.define('Ext.ux.Histogram', {
 
 			path = 'M' + xpos + ','  + (ypos + 5) + 'L' + xpos + ',' + ypos;
 			this.canvas.path(path);
-			this.canvas.text(xpos, ypos + 10, v);
+			this.canvas.text(xpos, ypos + 10, Math.floor(v));
 		}
 	},
 	
@@ -379,8 +388,6 @@ Ext.define('Ext.ux.Histogram', {
 			yinterval = (max - min) / szstep;
 		}
 		
-		console.log(szstep);
-
 		for(var i = 0;i <= szstep;i++) {
 			var v = min + yinterval * i;
 			ypos = (r.y + r.h) - ((v - min) * r.h) / (max - min);
@@ -403,8 +410,7 @@ Ext.define('Ext.ux.Histogram', {
 	drawBar : function(r) {
 		var canvas = this.canvas;
 		
-		var xl1, xl2, yl, xp1, xp2, hp, yp;
-		var rects = [];
+		var yl, xp1, xp2, hp, yp;
 		
 		for(var i = 0;i < this.binMesh.length - 1;i++) {
 			yl = this.freqData[i];
@@ -418,82 +424,61 @@ Ext.define('Ext.ux.Histogram', {
 				
 			yp = r.y + r.h - hp;
 			
-			rects[i] = canvas.rect(xp1, yp, xp2 - xp1, hp);
-			rects[i].attr({
+			canvas.rect(xp1, yp, xp2 - xp1, hp).attr({
 				fill : '#00f',
 				opacity : '0.2',
 				stroke : 'navy',
 				'stroke-width' : '2'
 			});
+			
+			yp = Math.min(yp + hp / 2, r.y + r.h - 20);
+			canvas.text((xp1 + xp2) / 2, yp, this.freqData[i]).attr({
+				'font-size' : 20,
+				'opacity' : 0.2,
+				'fill' : '#f00'
+			});
 		}
-	},
-	
-	drawBarFreq : function(r) {
-		/*
-        Dim dRegionWidth As Double = DrawRegion.Width
-        Dim dRegionHeight As Double = DrawRegion.Height
-        Dim ptOrigin As Point = New Point(DrawRegion.Left, DrawRegion.Bottom)
-        Dim iBarLeft, iBarRight, iBarTop, iBarBottom As Integer
-        Dim dFirstXPos As Double = 0
-        Dim dNextXPos As Double = 0
-        Dim dFirstXPixel As Double = 0
-        Dim dNextXPixel As Double = 0
-        Dim iXPos As Integer = 0
-        Dim iYPos As Integer = 0
-        Dim iValue As Integer = 0
-        Dim iBinMeshSize As Integer = ParentControl.DataSet.BinMesh.Count
-        Dim i As Integer
-
-        Dim fmtFreqText As StringFormat = New StringFormat
-        fmtFreqText.LineAlignment = StringAlignment.Center
-        fmtFreqText.Alignment = StringAlignment.Center
-
-        For i = 0 To iBinMeshSize - 2
-            dFirstXPos = ParentControl.DataSet.BinMesh(i)
-            dNextXPos = ParentControl.DataSet.BinMesh(i + 1)
-            dFirstXPixel = (dFirstXPos - m_dXAxisMin) * dRegionWidth / (m_dXAxisMax - m_dXAxisMin)
-            dNextXPixel = (dNextXPos - m_dXAxisMin) * dRegionWidth / (m_dXAxisMax - m_dXAxisMin)
-
-            If DrawRegion.Left + dFirstXPixel < DrawRegion.Left Then
-                GoTo NEXT_FOR
-            End If
-            If (DrawRegion.Left + dNextXPixel > DrawRegion.Right) Then
-                GoTo NEXT_FOR
-            End If
-
-            If (DrawRegion.Left > DrawRegion.Left + dFirstXPixel) Then
-                iBarLeft = DrawRegion.Left
-            Else
-                iBarLeft = DrawRegion.Left + CInt(dFirstXPixel)
-            End If
-
-            If (DrawRegion.Right < DrawRegion.Left + dNextXPixel) Then
-                iBarRight = DrawRegion.Right
-            Else
-                iBarRight = DrawRegion.Left + CInt(dNextXPixel)
-            End If
-
-            iValue = ParentControl.DataSet.FreqData(i)
-
-            iYPos = ptOrigin.Y - CInt((iValue - YAxisMin) * dRegionHeight / (YAxisMax - YAxisMin))
-            If iYPos < DrawRegion.Top Then
-                iYPos = DrawRegion.Top
-            End If
-            If iYPos > DrawRegion.Bottom Then
-                iYPos = DrawRegion.Bottom
-            End If
-            Dim sValue As String = iValue.ToString("#,##0")
-            Dim szText As SizeF = g.MeasureString(sValue, ParentControl.Font)
-            iBarTop = iYPos - szText.Height
-            iBarBottom = iYPos
-
-            Dim rcText As RectangleF = New RectangleF(iBarLeft, iBarTop, iBarRight - iBarLeft, iBarBottom - iBarTop)
-            g.DrawString(sValue, ParentControl.Font, Brushes.Black, rcText, fmtFreqText)	
-*/	
 	},
 	
 	draw3Sigma : function() {
 		
+	},
+	
+	drawNormalLine : function(r) {
+		var min, max;
+		
+		min = r.x;
+		max = r.x + r.w;
+		
+		var pos = [];
+		var cnt = 0;
+		
+		for(var i = min;i <= max;i++) {
+			var x = (i - min) * (this.maxX - this.minX) / r.w + this.minX;
+			
+			var dnormal = Ext.Stat.dnormal(x, this.mean, this.stddev);
+			
+			var y = dnormal;
+			dnormal = Ext.Stat.dnormal(this.mean, this.mean, this.stddev);
+
+			// console.log(x, this.mean, this.stddev, dnormal, y);
+			
+			var ypos = (r.y + r.h) - (y * r.h / dnormal);
+			
+			if(ypos > (r.y + r.h))
+				continue;
+				
+			pos[cnt++] = i + ',' + Math.floor(ypos);
+		}
+		
+		pos[cnt++] = (r.x + r.w) + ',' + (r.y + r.h);
+		pos[cnt++] = (r.x) + ',' + (r.y + r.h);
+		
+		var path = 'M' + pos.join('L');
+		this.canvas.path(path).attr({
+			fill : '#0f0',
+			opacity : 0.2
+		});
 	},
 	
 	onDestroy : function() {
