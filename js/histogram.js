@@ -117,12 +117,11 @@ Ext.define('Ext.ux.Histogram', {
 			this.binMesh.push(this.binfirst + this.binwidth * i);
 		}
 		
-		var sum = 0, sqrtsum = 0, idx, dv, sv;
+		var sum = 0, idx, dv, sv;
 		
 		for(var i = 0;i < this.data.length;i++) {
 			dv = this.data[i];
 			sum += dv;
-			sqrtsum += Math.pow(dv, 2);
 			
 			if(dv === this.binfirst) {
 				idx = 0;
@@ -151,8 +150,6 @@ Ext.define('Ext.ux.Histogram', {
 		
 		if(this.stddev === null) {
 			this.stddev = Ext.Stat.stddev(this.data, this.mean);
-			// TODO 빠른 계산을 위해서 아래 로직을 수정해서 위를 대체한다.
-			// this.stddev = Math.sqrt(sqrtsum - this.data.length * Math.pow(sum / this.data.length, 2) / (this.data.length - 1)); // 계산 오류 있음.
 		}
 		
 		this.calculated = true;
