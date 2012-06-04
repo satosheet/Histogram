@@ -416,17 +416,16 @@ Ext.define('Ext.ux.Histogram', {
 			xp2 = r.x + ((this.binMesh[i + 1] - this.minX) * r.w) / (this.maxX - this.minX);
 			hp = (yl - this.minY) * r.h / (this.maxY - this.minY); // height pixels
 			
-			if(hp <= 0)
-				continue;
-				
 			yp = r.y + r.h - hp;
 			
-			canvas.rect(xp1, yp, xp2 - xp1, hp).attr({
-				fill : '#00f',
-				opacity : '0.2',
-				stroke : 'navy',
-				'stroke-width' : '2'
-			});
+			if(hp > 0) {
+				canvas.rect(xp1, yp, xp2 - xp1, hp).attr({
+					fill : '#00f',
+					opacity : '0.2',
+					stroke : 'navy',
+					'stroke-width' : '2'
+				});
+			}
 			
 			yp = Math.min(yp + hp / 2, r.y + r.h - 20);
 			canvas.text((xp1 + xp2) / 2, yp, this.freqData[i]).attr({
