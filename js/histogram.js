@@ -196,6 +196,7 @@ Ext.define('Ext.ux.Histogram', {
 		this.drawYAxis(rect);
 		this.drawBar(rect);
 		this.drawNormalLine(rect);
+		this.draw3SLine(rect);
 
 		// this.drawHands();
 		
@@ -475,6 +476,148 @@ Ext.define('Ext.ux.Histogram', {
 			fill : '#0f0',
 			opacity : 0.2
 		});
+	},
+	
+	draw3SLine : function(r) {
+		
+		/*
+        Dim dRegionWidth As Double = DrawRegion.Width
+        Dim dRegionHeight As Double = DrawRegion.Height
+        Dim ptOrigin As Point = New Point(DrawRegion.Left, DrawRegion.Bottom)
+        Dim dMean As Double = ParentControl.DataSet.Mean
+        Dim dSigmaLower As Double = dMean - ParentControl.DataSet.StdDev * 3
+        Dim dSigmaUpper As Double = dMean + ParentControl.DataSet.StdDev * 3
+
+        Dim penSpecLine As Pen = New Pen(CHART_SIGMA_LINE_COLOR, 1)
+        Dim sValue As String = STRING_NULL_DATA
+        Dim szText As SizeF = SizeF.Empty
+        Dim rcText As RectangleF = RectangleF.Empty
+        Dim iXPos As Integer = 0
+        Dim iXPos2 As Integer = 0
+        Dim iYPos As Integer = 0
+        Dim iMeanPos1, iSimgaUpperPos1, iSigmaLowerPos1 As Integer
+        Dim iMeanPos2, iSimgaUpperPos2, iSigmaLowerPos2 As Integer
+        Dim iMPos1, i3sUpperPos1, i3sLowerPos1 As Integer
+        Dim iMPos2, i3sUpperPos2, i3sLowerPos2 As Integer
+        iMeanPos1 = 0
+        iSimgaUpperPos1 = 0
+        iSigmaLowerPos1 = 0
+        iMeanPos2 = 0
+        iSimgaUpperPos2 = 0
+        iSigmaLowerPos2 = 0
+        iMPos1 = 0
+        i3sUpperPos1 = 0
+        i3sLowerPos1 = 0
+        iMPos2 = 0
+        i3sUpperPos2 = 0
+        i3sLowerPos2 = 0
+
+        Dim fmtSigma As StringFormat = New StringFormat
+        fmtSigma.Alignment = StringAlignment.Center
+        fmtSigma.LineAlignment = StringAlignment.Near
+		*/
+		
+		var origin = {
+			x : r.x,
+			y : r.y + r.h
+		};
+		var min = this.minX, max = this.maxX;
+		
+		var xpos = origin.x + (((this.mean - min) * r.w) / (max - min));
+		var ypos = origin.y;
+		
+		if(xpos > r.x - 20 && xpos < (r.x + r.w) + 20) {
+			this.canvas.path('M' + xpos + ',' + ypos + 'L' + xpos + ',' + (ypos - r.h + 30))
+		}
+		/*
+
+        iYPos = ptOrigin.Y
+
+        iXPos = ptOrigin.X + CInt(((dMean - XAxisMin) * dRegionWidth) / (XAxisMax - XAxisMin))
+        If iXPos > DrawRegion.Left - 20 And iXPos < DrawRegion.Right + 20 Then
+            g.DrawLine(penSpecLine, iXPos, iYPos, iXPos, iYPos - CInt(dRegionHeight + 30))
+            szText = g.MeasureString("M", ParentControl.Font)
+            iMPos1 = iXPos - szText.Width / 2.0
+            iMPos2 = iXPos + szText.Width / 2.0
+            rcText = New RectangleF(iXPos - CInt(szText.Width / 2.0), _
+                iYPos - CInt(dRegionHeight + 30 + szText.Height), _
+                szText.Width, _
+                szText.Height)
+            'g.FillRectangle(Brushes.WhiteSmoke, rcText)
+            g.DrawString("M", ParentControl.Font, New SolidBrush(CHART_SIGMA_LINE_COLOR), rcText)
+            sValue = dMean.ToString(ParentControl.PrecisionFormat)
+            szText = g.MeasureString(sValue, ParentControl.Font)
+            iMeanPos1 = iXPos - szText.Width / 2.0
+            iMeanPos2 = iXPos + szText.Width / 2.0
+            If ParentControl.IsViewSpecLimit = True Then
+                g.DrawString(sValue, ParentControl.Font, New SolidBrush(CHART_SIGMA_LINE_COLOR), iXPos, iYPos + 5 + szText.Height * 2, fmtSigma)
+            Else
+                g.DrawString(sValue, ParentControl.Font, New SolidBrush(CHART_SIGMA_LINE_COLOR), iXPos, iYPos + 5 + szText.Height, fmtSigma)
+            End If
+        End If
+
+        If ParentControl.DataSet.StdDev = 0 Then
+            Return True
+        End If
+
+        iXPos = ptOrigin.X + CInt(((dSigmaLower - XAxisMin) * dRegionWidth) / (XAxisMax - XAxisMin))
+        iXPos2 = iXPos
+        If iXPos > DrawRegion.Left - 20 And iXPos < DrawRegion.Right + 20 Then
+            g.DrawLine(penSpecLine, iXPos, iYPos, iXPos, iYPos - CInt(dRegionHeight + 30))
+            szText = g.MeasureString("3s", ParentControl.Font)
+            If iMPos1 <> 0 And iMPos1 < iXPos2 + szText.Width / 2.0 Then
+                iXPos2 = iMPos1 - szText.Width / 2.0
+            End If
+            rcText = New RectangleF(iXPos2 - CInt(szText.Width / 2.0), _
+                iYPos - CInt(dRegionHeight + 30 + szText.Height), _
+                szText.Width, _
+                szText.Height)
+            'g.FillRectangle(Brushes.WhiteSmoke, rcText)
+            g.DrawString("3s", ParentControl.Font, New SolidBrush(CHART_SIGMA_LINE_COLOR), rcText)
+            sValue = dSigmaLower.ToString(ParentControl.PrecisionFormat)
+            szText = g.MeasureString(sValue, ParentControl.Font)
+            If iMeanPos1 <> 0 And iMeanPos1 < iXPos + szText.Width / 2.0 Then
+                iXPos = iMeanPos1 - szText.Width / 2.0
+            End If
+            iSigmaLowerPos1 = iXPos - szText.Width / 2.0
+            iSigmaLowerPos2 = iXPos + szText.Width / 2.0
+            If ParentControl.IsViewSpecLimit = True Then
+                g.DrawString(sValue, ParentControl.Font, New SolidBrush(CHART_SIGMA_LINE_COLOR), iXPos, iYPos + 5 + szText.Height * 2, fmtSigma)
+            Else
+                g.DrawString(sValue, ParentControl.Font, New SolidBrush(CHART_SIGMA_LINE_COLOR), iXPos, iYPos + 5 + szText.Height, fmtSigma)
+            End If
+        End If
+
+        iXPos = ptOrigin.X + CInt(((dSigmaUpper - XAxisMin) * dRegionWidth) / (XAxisMax - XAxisMin))
+        iXPos2 = iXPos
+        If iXPos > DrawRegion.Left - 20 And iXPos < DrawRegion.Right + 20 Then
+            g.DrawLine(penSpecLine, iXPos, iYPos, iXPos, iYPos - CInt(dRegionHeight + 30))
+            szText = g.MeasureString("3s", ParentControl.Font)
+            If iMPos2 <> 0 And iMPos2 > iXPos2 - szText.Width / 2.0 Then
+                iXPos2 = iMPos2 + szText.Width / 2.0
+            End If
+            rcText = New RectangleF(iXPos2 - CInt(szText.Width / 2.0), _
+                iYPos - CInt(dRegionHeight + 30 + szText.Height), _
+                szText.Width, _
+                szText.Height)
+            'g.FillRectangle(Brushes.WhiteSmoke, rcText)
+            g.DrawString("3s", ParentControl.Font, New SolidBrush(CHART_SIGMA_LINE_COLOR), rcText)
+            sValue = dSigmaUpper.ToString(ParentControl.PrecisionFormat)
+            szText = g.MeasureString(sValue, ParentControl.Font)
+            If iMeanPos2 <> 0 And iMeanPos2 > iXPos - szText.Width / 2.0 Then
+                iXPos = iMeanPos2 + szText.Width / 2.0
+            End If
+            iSimgaUpperPos1 = iXPos - szText.Width / 2.0
+            iSimgaUpperPos2 = iXPos + szText.Width / 2.0
+            If ParentControl.IsViewSpecLimit = True Then
+                g.DrawString(sValue, ParentControl.Font, New SolidBrush(CHART_SIGMA_LINE_COLOR), iXPos, iYPos + 5 + szText.Height * 2, fmtSigma)
+            Else
+                g.DrawString(sValue, ParentControl.Font, New SolidBrush(CHART_SIGMA_LINE_COLOR), iXPos, iYPos + 5 + szText.Height, fmtSigma)
+            End If
+        End If
+
+        Return True
+*/
 	},
 	
 	onDestroy : function() {

@@ -7,16 +7,28 @@
 		<script type="text/javascript" src="js/raphael-min.js"></script>
 		<script type="text/javascript" src="js/Stat.js"></script>
 		<script type="text/javascript" src="js/Histogram.js"></script>
+		<script type="text/javascript" src="js/Scroller.js"></script>
 
 		<script type="text/javascript">
 			Ext.onReady(function() {
 				var body = Ext.getBody();
-				var histogram = Ext.create('Ext.ux.Histogram', {
-					width : body.getWidth(),
-					height : body.getHeight(),
+				// var histogram = Ext.create('Ext.ux.Histogram', {
+				// 	width : body.getWidth(),
+				// 	height : body.getHeight(),
+				// 	renderTo : body
+				// });
+				// histogram.show();
+				scroller = Ext.create('Ext.ux.Scroller', {
 					renderTo : body
 				});
-				histogram.show();
+				scroller.show();
+				scroller.setData([{
+					text : 'First Line'
+				}, {
+					text : 'Second Line'
+				}, {
+					text : 'Last Line'
+				}])
 			})
 		</script>
 	</head>
