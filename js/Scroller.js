@@ -1,37 +1,50 @@
-Ext.define('Ext.ux.Scroller', {
+Ext.define('ALM.view.component.TextCarousel', {
 	extend : 'Ext.Component',
 	
-	alias : 'widget.textscroller',
+	alias : 'widget.textcarousel',
 	
-	interval : 2000,
-	
+	interval : 5000,
+		
 	initComponent : function() {
 		this.callParent(arguments);
 	},
 	
 	afterRender : function() {
+		var self = this;
+		
 		this.callParent(arguments);
 
 		this.running = false;
 
-		this.setData(this.data);
+		this.setData(this.initialConfig.data);
+		
+		this.addEvents('click');
+		
+		this.getEl().on('click', function() {
+			var i = Math.min(self.current, self._data.length) % self._data.length;
+			self.fireEvent('click', self, self.getData()[i]);
+		});
 	},
 	
 	stop : function() {
-		if(this._interval)
-        	clearInterval(this.autoInterval);
+		if(this._interval) {
+			clearInterval(this._interval);
+			this._interval = null;
+		}
 	},
 	
 	start : function() {
 		var self = this;
 		this.stop();
-		this._interval = setInterval(function() {
-			self.scroll();
-		}, this.interval);
+		if(!this._interval) {
+			this._interval = setInterval(function() {
+				self.scroll();
+			}, this.interval);
+		}
 	},
 	
 	getData : function() {
-		return this._data || [];
+		return Ext.clone(this._data || []);
 	},
 	
 	setData : function(data) {
@@ -116,9 +129,7 @@ Ext.define('Ext.ux.Scroller', {
 
 			this.running = true;
 
-			var sz = -(this.current * this.liHeight);
-
-			this.ul.setY(sz, {
+			this.ul.setY(this.div.getY() - (this.current * this.liHeight), {
 				duration : 500,
 				easing : 'bounceOut',
 				callback : function() {
@@ -133,7 +144,7 @@ Ext.define('Ext.ux.Scroller', {
 	'<div>',
 	'<ul>',
 	'<tpl for=".">',
-	'<li>{text}</li>',
+	'<li style="color:red">{text}</li>',
 	'</tpl>',
 	'</ul>',
 	'</div>'
