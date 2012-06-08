@@ -1,12 +1,12 @@
 Ext.define('Ext.ux.Histogram', {
 	extend : 'Ext.Component',
 	
-	udc : null,
-	target : null,
-	lsl : null,
+	usl : 1077,
+	target : 1052,
+	lsl : 1027,
 	show3SigmaLine : true,
 	showNormalLine : true,
-	showSpecLimit : false,
+	showSpecLimit : true,
 	showGridLine : true,
 	autoScaleX : true,
 	autoScaleY : true,
@@ -191,12 +191,13 @@ Ext.define('Ext.ux.Histogram', {
 		this.calculate();
 		
 		var rect = this.drawRegion();
-		this.drawTitle('top title', 'bottom title', 'left title');
+		this.drawTitle('Capability Analysis', 'Histogram Axis', 'Count');
 		this.drawXAxis(rect);
 		this.drawYAxis(rect);
 		this.drawBar(rect);
 		this.drawNormalLine(rect);
 		this.draw3SLine(rect);
+		this.drawSpecLine(rect);
 
 		// this.drawHands();
 		
@@ -227,8 +228,8 @@ Ext.define('Ext.ux.Histogram', {
 		
 		const CHART_LEFT_GAP_PIXELS = 60;
 		const CHART_RIGHT_GAP_PIXELS = 30;
-		const CHART_TOP_GAP_PIXELS = 30;
-		const CHART_BOTTOM_GAP_PIXELS = 60;
+		const CHART_TOP_GAP_PIXELS = 90;
+		const CHART_BOTTOM_GAP_PIXELS = 90;
 		
 		var rect = {
 			x : CHART_LEFT_GAP_PIXELS,
@@ -280,7 +281,7 @@ Ext.define('Ext.ux.Histogram', {
 		const CHART_Y_SCALE_STEP = 20;
 
 		var min, max, xpos, ypos;
-		var textHeight = 10;
+		var textHeight = 15;
 		
 		if(this.autoScaleX) {
 			min = this.binMesh[0];
@@ -324,9 +325,9 @@ Ext.define('Ext.ux.Histogram', {
 		if(this.show3SigmaLine && this.showSpecLimit) {
 			ypos = r.y + r.h + 8 + textHeight * 3;
 		} else if(!this.showSpecLimit && this.show3SigmaLine) {
-			ypos = r.y + r.h + 8 + textHeight;
-		} else {
 			ypos = r.y + r.h + 8 + textHeight * 2;
+		} else {
+			ypos = r.y + r.h + 8 + textHeight * 1;
 		}
 		
 		path = 'M' + (r.x - 20) + ',' + ypos + 'L' + (r.x + r.w + 20) + ',' + ypos;
@@ -437,10 +438,6 @@ Ext.define('Ext.ux.Histogram', {
 		}
 	},
 	
-	draw3Sigma : function() {
-		
-	},
-	
 	drawNormalLine : function(r) {
 		var min, max;
 		
@@ -457,8 +454,6 @@ Ext.define('Ext.ux.Histogram', {
 			
 			var y = dnormal;
 			dnormal = Ext.Stat.dnormal(this.mean, this.mean, this.stddev);
-
-			// console.log(x, this.mean, this.stddev, dnormal, y);
 			
 			var ypos = (r.y + r.h) - (y * r.h / dnormal);
 			
@@ -479,43 +474,7 @@ Ext.define('Ext.ux.Histogram', {
 	},
 	
 	draw3SLine : function(r) {
-		
-		/*
-        Dim dRegionWidth As Double = DrawRegion.Width
-        Dim dRegionHeight As Double = DrawRegion.Height
-        Dim ptOrigin As Point = New Point(DrawRegion.Left, DrawRegion.Bottom)
-        Dim dMean As Double = ParentControl.DataSet.Mean
-        Dim dSigmaLower As Double = dMean - ParentControl.DataSet.StdDev * 3
-        Dim dSigmaUpper As Double = dMean + ParentControl.DataSet.StdDev * 3
-
-        Dim penSpecLine As Pen = New Pen(CHART_SIGMA_LINE_COLOR, 1)
-        Dim sValue As String = STRING_NULL_DATA
-        Dim szText As SizeF = SizeF.Empty
-        Dim rcText As RectangleF = RectangleF.Empty
-        Dim iXPos As Integer = 0
-        Dim iXPos2 As Integer = 0
-        Dim iYPos As Integer = 0
-        Dim iMeanPos1, iSimgaUpperPos1, iSigmaLowerPos1 As Integer
-        Dim iMeanPos2, iSimgaUpperPos2, iSigmaLowerPos2 As Integer
-        Dim iMPos1, i3sUpperPos1, i3sLowerPos1 As Integer
-        Dim iMPos2, i3sUpperPos2, i3sLowerPos2 As Integer
-        iMeanPos1 = 0
-        iSimgaUpperPos1 = 0
-        iSigmaLowerPos1 = 0
-        iMeanPos2 = 0
-        iSimgaUpperPos2 = 0
-        iSigmaLowerPos2 = 0
-        iMPos1 = 0
-        i3sUpperPos1 = 0
-        i3sLowerPos1 = 0
-        iMPos2 = 0
-        i3sUpperPos2 = 0
-        i3sLowerPos2 = 0
-
-        Dim fmtSigma As StringFormat = New StringFormat
-        fmtSigma.Alignment = StringAlignment.Center
-        fmtSigma.LineAlignment = StringAlignment.Near
-		*/
+		/* Mean Line 그리기 */
 		
 		var origin = {
 			x : r.x,
@@ -527,97 +486,162 @@ Ext.define('Ext.ux.Histogram', {
 		var ypos = origin.y;
 		
 		if(xpos > r.x - 20 && xpos < (r.x + r.w) + 20) {
-			this.canvas.path('M' + xpos + ',' + ypos + 'L' + xpos + ',' + (ypos - r.h + 30))
+			this.canvas.path('M' + xpos + ',' + ypos + 'L' + xpos + ',' + (ypos - r.h - 30)).attr({
+				stroke : 'red'
+			});
+			this.canvas.text(xpos, ypos - r.h - 45, 'M').attr({
+				'font-size' : 20,
+				'opacity' : 1.0,
+				'fill' : '#f00'
+			});
 		}
-		/*
+		
+		var textHeight = 20;
+		
+		if(this.showSpecLimit) {
+			this.canvas.text(xpos, ypos + textHeight * 2, this.mean).attr({
+				'font-size' : 10,
+				'opacity' : 1.0,
+				'fill' : '#f00'
+			});
+		} else {
+			this.canvas.text(xpos, ypos + textHeight, this.mean).attr({
+				'font-size' : 10,
+				'opacity' : 1.0,
+				'fill' : '#f00'
+			});
+		}
+		
+		if(this.stddev == 0)
+			return;
+					
+		/* 3Sigma Line 그리기 */
+		
+        var l3sigma = this.mean - this.stddev * 3;
+		var u3sigma = this.mean + this.stddev * 3;
+		
+		xpos = origin.x + (((l3sigma - min) * r.w) / (max - min));
+		
+		if(xpos > r.x - 20 && xpos < (r.x + r.w) + 20) {
+			this.canvas.path('M' + xpos + ',' + ypos + 'L' + xpos + ',' + (ypos - r.h - 30)).attr({
+				stroke : 'red'
+			});
+			this.canvas.text(xpos, ypos - r.h - 45, '-3s').attr({
+				'font-size' : 20,
+				'opacity' : 1.0,
+				'fill' : '#f00'
+			});
+		}
+		
+		if(this.showSpecLimit) {
+			this.canvas.text(xpos, ypos + textHeight * 2, l3sigma).attr({
+				'font-size' : 10,
+				'opacity' : 1.0,
+				'fill' : '#f00'
+			});
+		} else {
+			this.canvas.text(xpos, ypos + textHeight, l3sigma).attr({
+				'font-size' : 10,
+				'opacity' : 1.0,
+				'fill' : '#f00'
+			});
+		}
 
-        iYPos = ptOrigin.Y
+		xpos = origin.x + (((u3sigma - min) * r.w) / (max - min));
+		
+		if(xpos > r.x - 20 && xpos < (r.x + r.w) + 20) {
+			this.canvas.path('M' + xpos + ',' + ypos + 'L' + xpos + ',' + (ypos - r.h - 30)).attr({
+				stroke : 'red'
+			});
+			this.canvas.text(xpos, ypos - r.h - 45, '3s').attr({
+				'font-size' : 20,
+				'opacity' : 1.0,
+				'fill' : '#f00'
+			});
+		}
+		
+		if(this.showSpecLimit) {
+			this.canvas.text(xpos, ypos + textHeight * 2, u3sigma).attr({
+				'font-size' : 10,
+				'opacity' : 1.0,
+				'fill' : '#f00'
+			});
+		} else {
+			this.canvas.text(xpos, ypos + textHeight, u3sigma).attr({
+				'font-size' : 10,
+				'opacity' : 1.0,
+				'fill' : '#f00'
+			});
+		}
+	},
+	
+	drawSpecLine : function(r) {
+		/* Target Line 그리기 */
+		
+		var origin = {
+			x : r.x,
+			y : r.y + r.h
+		};
+		var min = this.minX, max = this.maxX;
+		
+		var xpos = origin.x + (((this.target - min) * r.w) / (max - min));
+		var ypos = origin.y;
+		
+		if(xpos > r.x - 20 && xpos < (r.x + r.w) + 20) {
+			this.canvas.path('M' + xpos + ',' + ypos + 'L' + xpos + ',' + (ypos - r.h - 10));
+			this.canvas.text(xpos, ypos - r.h - 25, 'T').attr({
+				'font-size' : 20,
+				'opacity' : 1.0,
+				'fill' : '#f00'
+			});
+		}
+		
+		var textHeight = 20;
+		
+		this.canvas.text(xpos, ypos + textHeight, this.target).attr({
+			'font-size' : 10,
+			'opacity' : 1.0,
+			'fill' : '#f00'
+		});
+		
+		if(this.stddev == 0)
+			return;
+					
+		/* Spec Line 그리기 */
+		
+		xpos = origin.x + (((this.lsl - min) * r.w) / (max - min));
+		
+		if(xpos > r.x - 20 && xpos < (r.x + r.w) + 20) {
+			this.canvas.path('M' + xpos + ',' + ypos + 'L' + xpos + ',' + (ypos - r.h - 10));
+			this.canvas.text(xpos, ypos - r.h - 25, 'LSL').attr({
+				'font-size' : 20,
+				'opacity' : 1.0,
+				'fill' : '#f00'
+			});
+		}
+		
+		this.canvas.text(xpos, ypos + textHeight, this.lsl).attr({
+			'font-size' : 10,
+			'opacity' : 1.0,
+			'fill' : '#f00'
+		});
 
-        iXPos = ptOrigin.X + CInt(((dMean - XAxisMin) * dRegionWidth) / (XAxisMax - XAxisMin))
-        If iXPos > DrawRegion.Left - 20 And iXPos < DrawRegion.Right + 20 Then
-            g.DrawLine(penSpecLine, iXPos, iYPos, iXPos, iYPos - CInt(dRegionHeight + 30))
-            szText = g.MeasureString("M", ParentControl.Font)
-            iMPos1 = iXPos - szText.Width / 2.0
-            iMPos2 = iXPos + szText.Width / 2.0
-            rcText = New RectangleF(iXPos - CInt(szText.Width / 2.0), _
-                iYPos - CInt(dRegionHeight + 30 + szText.Height), _
-                szText.Width, _
-                szText.Height)
-            'g.FillRectangle(Brushes.WhiteSmoke, rcText)
-            g.DrawString("M", ParentControl.Font, New SolidBrush(CHART_SIGMA_LINE_COLOR), rcText)
-            sValue = dMean.ToString(ParentControl.PrecisionFormat)
-            szText = g.MeasureString(sValue, ParentControl.Font)
-            iMeanPos1 = iXPos - szText.Width / 2.0
-            iMeanPos2 = iXPos + szText.Width / 2.0
-            If ParentControl.IsViewSpecLimit = True Then
-                g.DrawString(sValue, ParentControl.Font, New SolidBrush(CHART_SIGMA_LINE_COLOR), iXPos, iYPos + 5 + szText.Height * 2, fmtSigma)
-            Else
-                g.DrawString(sValue, ParentControl.Font, New SolidBrush(CHART_SIGMA_LINE_COLOR), iXPos, iYPos + 5 + szText.Height, fmtSigma)
-            End If
-        End If
-
-        If ParentControl.DataSet.StdDev = 0 Then
-            Return True
-        End If
-
-        iXPos = ptOrigin.X + CInt(((dSigmaLower - XAxisMin) * dRegionWidth) / (XAxisMax - XAxisMin))
-        iXPos2 = iXPos
-        If iXPos > DrawRegion.Left - 20 And iXPos < DrawRegion.Right + 20 Then
-            g.DrawLine(penSpecLine, iXPos, iYPos, iXPos, iYPos - CInt(dRegionHeight + 30))
-            szText = g.MeasureString("3s", ParentControl.Font)
-            If iMPos1 <> 0 And iMPos1 < iXPos2 + szText.Width / 2.0 Then
-                iXPos2 = iMPos1 - szText.Width / 2.0
-            End If
-            rcText = New RectangleF(iXPos2 - CInt(szText.Width / 2.0), _
-                iYPos - CInt(dRegionHeight + 30 + szText.Height), _
-                szText.Width, _
-                szText.Height)
-            'g.FillRectangle(Brushes.WhiteSmoke, rcText)
-            g.DrawString("3s", ParentControl.Font, New SolidBrush(CHART_SIGMA_LINE_COLOR), rcText)
-            sValue = dSigmaLower.ToString(ParentControl.PrecisionFormat)
-            szText = g.MeasureString(sValue, ParentControl.Font)
-            If iMeanPos1 <> 0 And iMeanPos1 < iXPos + szText.Width / 2.0 Then
-                iXPos = iMeanPos1 - szText.Width / 2.0
-            End If
-            iSigmaLowerPos1 = iXPos - szText.Width / 2.0
-            iSigmaLowerPos2 = iXPos + szText.Width / 2.0
-            If ParentControl.IsViewSpecLimit = True Then
-                g.DrawString(sValue, ParentControl.Font, New SolidBrush(CHART_SIGMA_LINE_COLOR), iXPos, iYPos + 5 + szText.Height * 2, fmtSigma)
-            Else
-                g.DrawString(sValue, ParentControl.Font, New SolidBrush(CHART_SIGMA_LINE_COLOR), iXPos, iYPos + 5 + szText.Height, fmtSigma)
-            End If
-        End If
-
-        iXPos = ptOrigin.X + CInt(((dSigmaUpper - XAxisMin) * dRegionWidth) / (XAxisMax - XAxisMin))
-        iXPos2 = iXPos
-        If iXPos > DrawRegion.Left - 20 And iXPos < DrawRegion.Right + 20 Then
-            g.DrawLine(penSpecLine, iXPos, iYPos, iXPos, iYPos - CInt(dRegionHeight + 30))
-            szText = g.MeasureString("3s", ParentControl.Font)
-            If iMPos2 <> 0 And iMPos2 > iXPos2 - szText.Width / 2.0 Then
-                iXPos2 = iMPos2 + szText.Width / 2.0
-            End If
-            rcText = New RectangleF(iXPos2 - CInt(szText.Width / 2.0), _
-                iYPos - CInt(dRegionHeight + 30 + szText.Height), _
-                szText.Width, _
-                szText.Height)
-            'g.FillRectangle(Brushes.WhiteSmoke, rcText)
-            g.DrawString("3s", ParentControl.Font, New SolidBrush(CHART_SIGMA_LINE_COLOR), rcText)
-            sValue = dSigmaUpper.ToString(ParentControl.PrecisionFormat)
-            szText = g.MeasureString(sValue, ParentControl.Font)
-            If iMeanPos2 <> 0 And iMeanPos2 > iXPos - szText.Width / 2.0 Then
-                iXPos = iMeanPos2 + szText.Width / 2.0
-            End If
-            iSimgaUpperPos1 = iXPos - szText.Width / 2.0
-            iSimgaUpperPos2 = iXPos + szText.Width / 2.0
-            If ParentControl.IsViewSpecLimit = True Then
-                g.DrawString(sValue, ParentControl.Font, New SolidBrush(CHART_SIGMA_LINE_COLOR), iXPos, iYPos + 5 + szText.Height * 2, fmtSigma)
-            Else
-                g.DrawString(sValue, ParentControl.Font, New SolidBrush(CHART_SIGMA_LINE_COLOR), iXPos, iYPos + 5 + szText.Height, fmtSigma)
-            End If
-        End If
-
-        Return True
-*/
+		xpos = origin.x + (((this.usl - min) * r.w) / (max - min));
+		
+		if(xpos > r.x - 20 && xpos < (r.x + r.w) + 20) {
+			this.canvas.path('M' + xpos + ',' + ypos + 'L' + xpos + ',' + (ypos - r.h - 10));
+			this.canvas.text(xpos, ypos - r.h - 25, 'USL').attr({
+				'font-size' : 20,
+				'opacity' : 1.0,
+				'fill' : '#f00'
+			});
+		}
+		
+		this.canvas.text(xpos, ypos + textHeight, this.usl).attr({
+			'font-size' : 10,
+			'opacity' : 1.0,
+			'fill' : '#f00'
+		});
 	},
 	
 	onDestroy : function() {

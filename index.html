@@ -12,23 +12,23 @@
 		<script type="text/javascript">
 			Ext.onReady(function() {
 				var body = Ext.getBody();
-				// var histogram = Ext.create('Ext.ux.Histogram', {
-				// 	width : body.getWidth(),
-				// 	height : body.getHeight(),
-				// 	renderTo : body
-				// });
-				// histogram.show();
-				scroller = Ext.create('ALM.view.component.TextCarousel', {
+				var histogram = Ext.create('Ext.ux.Histogram', {
+					width : body.getWidth(),
+					height : body.getHeight(),
 					renderTo : body
 				});
-				scroller.show();
-				scroller.setData([{
-					text : 'First Line'
-				}, {
-					text : 'Second Line'
-				}, {
-					text : 'Last Line'
-				}])
+				histogram.show();
+				// scroller = Ext.create('ALM.view.component.TextCarousel', {
+				// 	renderTo : body
+				// });
+				// scroller.show();
+				// scroller.setData([{
+				// 	text : 'First Line'
+				// }, {
+				// 	text : 'Second Line'
+				// }, {
+				// 	text : 'Last Line'
+				// }])
 			})
 		</script>
 	</head>
