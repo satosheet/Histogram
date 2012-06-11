@@ -1,9 +1,9 @@
 Ext.define('Ext.ux.Histogram', {
 	extend : 'Ext.Component',
 	
-	usl : 1077,
-	target : 1052,
-	lsl : 1027,
+	usl : 87,
+	target : 62,
+	lsl : 37,
 	show3SigmaLine : true,
 	showNormalLine : true,
 	showSpecLimit : true,
@@ -177,14 +177,6 @@ Ext.define('Ext.ux.Histogram', {
 		var width = this.getWidth();
 		var height = this.getHeight();
 		
-		// this.gbEl = this.el.createChild({
-		// 	tag : 'img',
-		// 	src : 'http://miracom.co.kr/images/main_logo.jpg',
-		// 	cls : 'ext-ux-clock-img',
-		// 	width : width,
-		// 	height : height
-		// });
-		
 		this.canvas = Raphael(this.el.dom, width, height);
 		
 		this.generate();
@@ -199,8 +191,6 @@ Ext.define('Ext.ux.Histogram', {
 		this.draw3SLine(rect);
 		this.drawSpecLine(rect);
 
-		// this.drawHands();
-		
 		// this.on('resize', this.refresh, this);
 		
 		this.callParent(arguments);
@@ -213,13 +203,13 @@ Ext.define('Ext.ux.Histogram', {
 		this.data = [];
 		
 		for(var i = 0;i < NTEST /2;i++)
-			this.data[i] = 1000 + Math.floor(Math.random() * RANDMAX);
+			this.data[i] = 10 + Math.floor(Math.random() * RANDMAX);
 		for(;i < NTEST;i++)
-			this.data[i] = 1000 + Math.floor((RANDMAX / 4) + Math.random() * (RANDMAX / 2));
+			this.data[i] = 10 + Math.floor((RANDMAX / 4) + Math.random() * (RANDMAX / 2));
 		for(;i < NTEST * 4;i++)
-			this.data[i] = 1000 + Math.floor((RANDMAX / 3) + Math.random() * (RANDMAX / 3));
+			this.data[i] = 10 + Math.floor((RANDMAX / 3) + Math.random() * (RANDMAX / 3));
 		for(;i < NTEST * 16;i++)
-			this.data[i] = 1000 + Math.floor((RANDMAX / 2.5) + Math.random() * (RANDMAX / 4));
+			this.data[i] = 10 + Math.floor((RANDMAX / 2.5) + Math.random() * (RANDMAX / 4));
 	},
 	
 	drawRegion : function() {
@@ -319,7 +309,7 @@ Ext.define('Ext.ux.Histogram', {
 
 			path = 'M' + xpos + ','  + (ypos + 5) + 'L' + xpos + ',' + ypos;
 			this.canvas.path(path);
-			this.canvas.text(xpos, ypos + 10, Math.floor(this.binMesh[i]));
+			this.canvas.text(xpos, ypos + 10, this.binMesh[i].toFixed(4));
 		}
 
 		if(this.show3SigmaLine && this.showSpecLimit) {
@@ -341,7 +331,7 @@ Ext.define('Ext.ux.Histogram', {
 
 			path = 'M' + xpos + ','  + (ypos + 5) + 'L' + xpos + ',' + ypos;
 			this.canvas.path(path);
-			this.canvas.text(xpos, ypos + 10, Math.floor(v));
+			this.canvas.text(xpos, ypos + 10, v.toFixed(4));
 		}
 	},
 	
@@ -499,13 +489,13 @@ Ext.define('Ext.ux.Histogram', {
 		var textHeight = 20;
 		
 		if(this.showSpecLimit) {
-			this.canvas.text(xpos, ypos + textHeight * 2, this.mean).attr({
+			this.canvas.text(xpos, ypos + textHeight * 2, this.mean.toFixed(4)).attr({
 				'font-size' : 10,
 				'opacity' : 1.0,
 				'fill' : '#f00'
 			});
 		} else {
-			this.canvas.text(xpos, ypos + textHeight, this.mean).attr({
+			this.canvas.text(xpos, ypos + textHeight, this.mean.toFixed(4)).attr({
 				'font-size' : 10,
 				'opacity' : 1.0,
 				'fill' : '#f00'
@@ -534,13 +524,13 @@ Ext.define('Ext.ux.Histogram', {
 		}
 		
 		if(this.showSpecLimit) {
-			this.canvas.text(xpos, ypos + textHeight * 2, l3sigma).attr({
+			this.canvas.text(xpos, ypos + textHeight * 2, l3sigma.toFixed(4)).attr({
 				'font-size' : 10,
 				'opacity' : 1.0,
 				'fill' : '#f00'
 			});
 		} else {
-			this.canvas.text(xpos, ypos + textHeight, l3sigma).attr({
+			this.canvas.text(xpos, ypos + textHeight, l3sigma.toFixed(4)).attr({
 				'font-size' : 10,
 				'opacity' : 1.0,
 				'fill' : '#f00'
@@ -561,13 +551,13 @@ Ext.define('Ext.ux.Histogram', {
 		}
 		
 		if(this.showSpecLimit) {
-			this.canvas.text(xpos, ypos + textHeight * 2, u3sigma).attr({
+			this.canvas.text(xpos, ypos + textHeight * 2, u3sigma.toFixed(4)).attr({
 				'font-size' : 10,
 				'opacity' : 1.0,
 				'fill' : '#f00'
 			});
 		} else {
-			this.canvas.text(xpos, ypos + textHeight, u3sigma).attr({
+			this.canvas.text(xpos, ypos + textHeight, u3sigma.toFixed(4)).attr({
 				'font-size' : 10,
 				'opacity' : 1.0,
 				'fill' : '#f00'
@@ -598,7 +588,7 @@ Ext.define('Ext.ux.Histogram', {
 		
 		var textHeight = 20;
 		
-		this.canvas.text(xpos, ypos + textHeight, this.target).attr({
+		this.canvas.text(xpos, ypos + textHeight, this.target.toFixed(4)).attr({
 			'font-size' : 10,
 			'opacity' : 1.0,
 			'fill' : '#f00'
@@ -620,7 +610,7 @@ Ext.define('Ext.ux.Histogram', {
 			});
 		}
 		
-		this.canvas.text(xpos, ypos + textHeight, this.lsl).attr({
+		this.canvas.text(xpos, ypos + textHeight, this.lsl.toFixed(4)).attr({
 			'font-size' : 10,
 			'opacity' : 1.0,
 			'fill' : '#f00'
@@ -637,7 +627,7 @@ Ext.define('Ext.ux.Histogram', {
 			});
 		}
 		
-		this.canvas.text(xpos, ypos + textHeight, this.usl).attr({
+		this.canvas.text(xpos, ypos + textHeight, this.usl.toFixed(4)).attr({
 			'font-size' : 10,
 			'opacity' : 1.0,
 			'fill' : '#f00'
